@@ -8,7 +8,7 @@ export const STORE = {
 
   // WhatsApp number that receives orders. Country code, no + or spaces.
   // Example Lebanon mobile: "9613123456"
-  whatsappNumber: "9613000000",
+  whatsappNumber: "9613684661",
 
   // Optional Instagram handle shown in footer / nav
   instagramHandle: "moderna_lebanon",
