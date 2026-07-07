@@ -1,6 +1,6 @@
 import { STORE } from "../config";
 
-export function buildOrderMessage(items, subtotal) {
+export function buildOrderMessage(items, subtotal, paymentMethod) {
   const lines = [
     `Hi Moderna! I'd like to order:`,
     ``,
@@ -12,6 +12,7 @@ export function buildOrderMessage(items, subtotal) {
     }),
     ``,
     `Total: ${STORE.currency}${subtotal.toFixed(2)}`,
+    `Payment: ${paymentMethod}`,
     ``,
     `Name: `,
     `Delivery address: `,
@@ -19,7 +20,7 @@ export function buildOrderMessage(items, subtotal) {
   return lines.join("\n");
 }
 
-export function whatsappOrderLink(items, subtotal) {
-  const message = buildOrderMessage(items, subtotal);
+export function whatsappOrderLink(items, subtotal, paymentMethod) {
+  const message = buildOrderMessage(items, subtotal, paymentMethod);
   return `https://wa.me/${STORE.whatsappNumber}?text=${encodeURIComponent(message)}`;
 }
