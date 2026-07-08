@@ -1,15 +1,11 @@
-import { useState } from "react";
 import { X, Minus, Plus, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { STORE } from "../config";
 import { whatsappOrderLink } from "../lib/whatsapp";
 
-const PAYMENT_METHODS = ["Cash on Delivery", "Whish Money"];
-
 export default function CartDrawer() {
   const { items, isOpen, setIsOpen, updateQuantity, removeItem, subtotal } = useCart();
-  const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHODS[0]);
 
   if (!isOpen) return null;
 
@@ -96,27 +92,8 @@ export default function CartDrawer() {
                 {subtotal.toFixed(2)}
               </span>
             </div>
-            <div className="mb-4">
-              <p className="eyebrow text-silver-dim mb-2">Payment method</p>
-              <div className="flex gap-2">
-                {PAYMENT_METHODS.map((method) => (
-                  <button
-                    key={method}
-                    type="button"
-                    onClick={() => setPaymentMethod(method)}
-                    className={`flex-1 border px-3 py-2 text-sm transition-colors ${
-                      paymentMethod === method
-                        ? "border-noir bg-noir text-platinum"
-                        : "border-line/40 hover:border-noir"
-                    }`}
-                  >
-                    {method}
-                  </button>
-                ))}
-              </div>
-            </div>
             <a
-              href={whatsappOrderLink(items, subtotal, paymentMethod)}
+              href={whatsappOrderLink(items, subtotal)}
               target="_blank"
               rel="noreferrer"
               className="block w-full text-center bg-noir text-platinum py-3 eyebrow hover:bg-brass hover:text-noir transition-colors"
