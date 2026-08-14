@@ -29,16 +29,16 @@ export default function Home() {
       <section className="relative bg-graphite text-noir overflow-hidden">
         <div className="mx-auto max-w-7xl px-5 md:px-8 py-24 md:py-36 grid md:grid-cols-2 gap-10 items-center">
           <div className="animate-fade-up">
-            <p className="eyebrow text-brass mb-5">Women's Footwear · Koura, Lebanon</p>
-            <h1 className="font-display text-4xl md:text-6xl leading-[1.05] text-balance">
+            <p className="eyebrow text-brass mb-6 tracking-[0.3em]">Women's Footwear · Koura, Lebanon</p>
+            <h1 className="font-display text-4xl md:text-7xl leading-[1.05] text-balance">
               Shoes built for the walk,
               <br />
               <em className="italic font-normal text-brass">not just the photo.</em>
             </h1>
-            <p className="mt-6 text-noir/70 max-w-md leading-relaxed">{STORE.tagline}</p>
+            <p className="mt-7 text-noir/70 max-w-md leading-relaxed">{STORE.tagline}</p>
             <Link
               to="/shop"
-              className="inline-block mt-8 bg-noir text-platinum px-7 py-3 eyebrow hover:bg-brass hover:text-noir transition-colors"
+              className="inline-block mt-10 bg-noir text-platinum px-8 py-4 eyebrow hover:bg-brass hover:text-noir transition-colors"
             >
               Shop the collection
             </Link>
@@ -59,9 +59,9 @@ export default function Home() {
       </section>
 
       {/* Featured */}
-      <section className="mx-auto max-w-7xl px-5 md:px-8 py-16 md:py-24">
-        <div className="flex items-end justify-between mb-8">
-          <h2 className="font-display text-2xl md:text-3xl">New arrivals</h2>
+      <section className="mx-auto max-w-7xl px-5 md:px-8 py-20 md:py-28">
+        <div className="flex items-end justify-between mb-12">
+          <h2 className="font-display text-2xl md:text-4xl">New arrivals</h2>
           <Link to="/shop" className="eyebrow text-brass border-b border-brass pb-0.5">
             View all
           </Link>
@@ -78,7 +78,7 @@ export default function Home() {
             .
           </p>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-16">
             {featured.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}

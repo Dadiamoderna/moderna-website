@@ -23,10 +23,10 @@ export default function ProductCard({ product }) {
           </span>
         )}
       </div>
-      <div className="pt-3 flex items-start justify-between gap-2">
+      <div className="pt-4 flex items-start justify-between gap-2">
         <div>
           <h3 className="font-display text-base text-noir">{product.name}</h3>
-          <p className="text-xs text-silver-dim mt-0.5">{product.category}</p>
+          <p className="eyebrow text-silver-dim mt-1.5">{product.category}</p>
         </div>
         <p className="font-display text-base text-noir shrink-0">
           {STORE.currency}

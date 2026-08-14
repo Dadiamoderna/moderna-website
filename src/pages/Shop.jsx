@@ -24,16 +24,16 @@ export default function Shop() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-5 md:px-8 py-12 md:py-16">
-      <h1 className="font-display text-3xl md:text-4xl mb-8">Shop</h1>
+    <div className="mx-auto max-w-7xl px-5 md:px-8 py-16 md:py-24">
+      <h1 className="font-display text-3xl md:text-5xl mb-12 text-center">Shop</h1>
 
-      <div className="flex flex-wrap gap-2 mb-10">
+      <div className="flex flex-wrap justify-center gap-x-8 gap-y-3 mb-16 border-b border-line/20 pb-6">
         <button
           onClick={() => setCategory("")}
-          className={`eyebrow px-4 py-2 border transition-colors ${
+          className={`eyebrow pb-1 border-b transition-colors ${
             !activeCategory
-              ? "bg-noir text-platinum border-noir"
-              : "border-line/40 text-silver-dim hover:border-noir"
+              ? "border-noir text-noir"
+              : "border-transparent text-silver-dim hover:text-noir"
           }`}
         >
           All
@@ -42,10 +42,10 @@ export default function Shop() {
           <button
             key={c}
             onClick={() => setCategory(c)}
-            className={`eyebrow px-4 py-2 border transition-colors ${
+            className={`eyebrow pb-1 border-b transition-colors ${
               activeCategory === c
-                ? "bg-noir text-platinum border-noir"
-                : "border-line/40 text-silver-dim hover:border-noir"
+                ? "border-noir text-noir"
+                : "border-transparent text-silver-dim hover:text-noir"
             }`}
           >
             {c}
@@ -54,11 +54,11 @@ export default function Shop() {
       </div>
 
       {loading ? (
-        <p className="text-silver-dim text-sm">Loading…</p>
+        <p className="text-silver-dim text-sm text-center">Loading…</p>
       ) : products.length === 0 ? (
-        <p className="text-silver-dim text-sm">No products found in this category yet.</p>
+        <p className="text-silver-dim text-sm text-center">No products found in this category yet.</p>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-16">
           {products.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}
