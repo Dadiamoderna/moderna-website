@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Plus, Pencil, Trash2, LogOut } from "lucide-react";
 import { fetchProducts, deleteProduct } from "../../lib/products";
 import { useAuth } from "../../context/AuthContext";
@@ -55,6 +56,12 @@ export default function AdminDashboard() {
           <p className="text-sm text-silver-dim mt-1">{products.length} products</p>
         </div>
         <div className="flex items-center gap-3">
+          <Link
+            to="/"
+            className="eyebrow text-silver-dim hover:text-noir px-2 transition-colors"
+          >
+            View site
+          </Link>
           <button
             onClick={openAdd}
             className="flex items-center gap-2 bg-noir text-platinum px-5 py-3 eyebrow hover:bg-brass hover:text-noir transition-colors"

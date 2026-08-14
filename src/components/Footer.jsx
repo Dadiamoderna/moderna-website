@@ -3,7 +3,7 @@ import { STORE } from "../config";
 export default function Footer() {
   return (
     <footer className="bg-graphite text-silver-dim border-t border-line/20 mt-24">
-      <div className="mx-auto max-w-7xl px-5 md:px-8 py-14 grid gap-10 md:grid-cols-3">
+      <div className="mx-auto max-w-7xl px-5 md:px-8 py-14 grid gap-10 md:grid-cols-2">
         <div>
           <div className="font-display text-xl text-noir mb-3">{STORE.name}</div>
           <p className="text-sm leading-relaxed max-w-xs">{STORE.about}</p>
@@ -25,12 +25,6 @@ export default function Footer() {
             className="block text-sm hover:text-brass transition-colors mt-1"
           >
             @{STORE.instagramHandle}
-          </a>
-        </div>
-        <div>
-          <div className="eyebrow text-noir mb-3">Moderna</div>
-          <a href="/admin" className="block text-sm hover:text-brass transition-colors">
-            Admin
           </a>
         </div>
       </div>
