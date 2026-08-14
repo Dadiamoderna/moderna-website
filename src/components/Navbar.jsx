@@ -9,10 +9,10 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 bg-noir/95 backdrop-blur border-b border-line">
+    <header className="sticky top-0 z-40 bg-graphite/95 backdrop-blur border-b border-line/20">
       <div className="mx-auto max-w-7xl px-5 md:px-8 h-16 flex items-center justify-between">
         <button
-          className="md:hidden text-platinum"
+          className="md:hidden text-noir"
           onClick={() => setMenuOpen((v) => !v)}
           aria-label="Toggle menu"
         >
@@ -21,17 +21,17 @@ export default function Navbar() {
 
         <Link
           to="/"
-          className="font-display text-2xl tracking-wide text-platinum select-none"
+          className="font-display text-2xl tracking-wide text-noir select-none"
         >
           {STORE.name}
         </Link>
 
-        <nav className="hidden md:flex items-center gap-8 eyebrow text-silver">
+        <nav className="hidden md:flex items-center gap-8 eyebrow text-noir/70">
           {CATEGORIES.map((c) => (
             <NavLink
               key={c}
               to={`/shop?category=${encodeURIComponent(c)}`}
-              className="hover:text-brass-light transition-colors"
+              className="hover:text-brass transition-colors"
             >
               {c}
             </NavLink>
@@ -39,7 +39,7 @@ export default function Navbar() {
         </nav>
 
         <button
-          className="relative text-platinum"
+          className="relative text-noir"
           onClick={() => setIsOpen(true)}
           aria-label="Open cart"
         >
@@ -53,13 +53,13 @@ export default function Navbar() {
       </div>
 
       {menuOpen && (
-        <nav className="md:hidden border-t border-line px-5 py-4 flex flex-col gap-4 eyebrow text-silver">
+        <nav className="md:hidden border-t border-line/20 px-5 py-4 flex flex-col gap-4 eyebrow text-noir/70">
           {CATEGORIES.map((c) => (
             <Link
               key={c}
               to={`/shop?category=${encodeURIComponent(c)}`}
               onClick={() => setMenuOpen(false)}
-              className="hover:text-brass-light"
+              className="hover:text-brass"
             >
               {c}
             </Link>

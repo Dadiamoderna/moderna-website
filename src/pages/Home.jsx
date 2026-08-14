@@ -26,28 +26,28 @@ export default function Home() {
   return (
     <div>
       {/* Hero */}
-      <section className="relative bg-noir text-platinum overflow-hidden">
+      <section className="relative bg-graphite text-noir overflow-hidden">
         <div className="mx-auto max-w-7xl px-5 md:px-8 py-24 md:py-36 grid md:grid-cols-2 gap-10 items-center">
           <div className="animate-fade-up">
-            <p className="eyebrow text-brass-light mb-5">Women's Footwear · Koura, Lebanon</p>
+            <p className="eyebrow text-brass mb-5">Women's Footwear · Koura, Lebanon</p>
             <h1 className="font-display text-4xl md:text-6xl leading-[1.05] text-balance">
               Shoes built for the walk,
               <br />
-              <em className="italic font-normal text-brass-light">not just the photo.</em>
+              <em className="italic font-normal text-brass">not just the photo.</em>
             </h1>
-            <p className="mt-6 text-silver max-w-md leading-relaxed">{STORE.tagline}</p>
+            <p className="mt-6 text-noir/70 max-w-md leading-relaxed">{STORE.tagline}</p>
             <Link
               to="/shop"
-              className="inline-block mt-8 bg-platinum text-noir px-7 py-3 eyebrow hover:bg-brass transition-colors"
+              className="inline-block mt-8 bg-noir text-platinum px-7 py-3 eyebrow hover:bg-brass hover:text-noir transition-colors"
             >
               Shop the collection
             </Link>
           </div>
-          <div className="aspect-[4/5] bg-graphite hidden md:block" />
+          <div className="aspect-[4/5] bg-graphite-2 hidden md:block" />
         </div>
 
         {/* Signature marquee strip */}
-        <div className="border-t border-line overflow-hidden py-4">
+        <div className="border-t border-line/20 overflow-hidden py-4">
           <div className="flex w-max animate-marquee">
             {[...MATERIALS, ...MATERIALS, ...MATERIALS].map((m, i) => (
               <span key={i} className="eyebrow text-silver-dim px-6 whitespace-nowrap">
