@@ -142,10 +142,8 @@ export default function ProductDetail() {
           </div>
         )}
 
-        {inventoryItem && (
-          <p className="text-xs text-silver-dim mb-3">
-            {variantStock > 0 ? `${variantStock} in stock` : "Out of stock in this size/color"}
-          </p>
+        {inventoryItem && variantStock <= 0 && (
+          <p className="text-xs text-silver-dim mb-3">Out of stock in this size/color</p>
         )}
 
         <button
