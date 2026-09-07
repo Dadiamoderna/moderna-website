@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { fetchProduct } from "../lib/products";
+import { fetchStockByCode } from "../lib/inventory";
 import { useCart } from "../context/CartContext";
 import { STORE } from "../config";
 
@@ -8,6 +9,7 @@ export default function ProductDetail() {
   const { id } = useParams();
   const { addItem } = useCart();
   const [product, setProduct] = useState(null);
+  const [liveStock, setLiveStock] = useState(null);
   const [activeImage, setActiveImage] = useState(0);
   const [size, setSize] = useState("");
   const [color, setColor] = useState("");
@@ -21,9 +23,15 @@ export default function ProductDetail() {
         setProduct(p);
         setSize(p.sizes?.[0] ?? "");
         setColor(p.colors?.[0] ?? "");
+        return fetchStockByCode(p.name);
       })
+      .then(setLiveStock)
       .finally(() => setLoading(false));
   }, [id]);
+
+  // When a product code links to the inventory system, the real quantity
+  // decides sold-out state; otherwise fall back to the manual toggle.
+  const inStock = liveStock !== null ? liveStock > 0 : product?.in_stock;
 
   if (loading) {
     return <p className="text-center py-24 text-silver-dim text-sm">Loading…</p>;
@@ -128,12 +136,18 @@ export default function ProductDetail() {
           </div>
         )}
 
+        {liveStock !== null && (
+          <p className="text-xs text-silver-dim mb-3">
+            {liveStock > 0 ? `${liveStock} in stock` : "Out of stock"}
+          </p>
+        )}
+
         <button
           onClick={handleAdd}
-          disabled={!product.in_stock}
+          disabled={!inStock}
           className="w-full bg-noir text-platinum py-4 eyebrow hover:bg-brass hover:text-noir transition-colors disabled:opacity-40 disabled:hover:bg-noir disabled:hover:text-platinum"
         >
-          {!product.in_stock ? "Sold out" : added ? "Added ✓" : "Add to bag"}
+          {!inStock ? "Sold out" : added ? "Added ✓" : "Add to bag"}
         </button>
       </div>
     </div>
