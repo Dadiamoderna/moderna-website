@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { fetchProduct } from "../lib/products";
-import { fetchStockByCode } from "../lib/inventory";
+import { fetchInventoryItem, stockForVariant, stockForSize } from "../lib/inventory";
 import { useCart } from "../context/CartContext";
 import { STORE } from "../config";
 
@@ -9,7 +9,7 @@ export default function ProductDetail() {
   const { id } = useParams();
   const { addItem } = useCart();
   const [product, setProduct] = useState(null);
-  const [liveStock, setLiveStock] = useState(null);
+  const [inventoryItem, setInventoryItem] = useState(null);
   const [activeImage, setActiveImage] = useState(0);
   const [size, setSize] = useState("");
   const [color, setColor] = useState("");
@@ -23,15 +23,17 @@ export default function ProductDetail() {
         setProduct(p);
         setSize(p.sizes?.[0] ?? "");
         setColor(p.colors?.[0] ?? "");
-        return fetchStockByCode(p.name);
+        return fetchInventoryItem(p.name);
       })
-      .then(setLiveStock)
+      .then(setInventoryItem)
       .finally(() => setLoading(false));
   }, [id]);
 
-  // When a product code links to the inventory system, the real quantity
-  // decides sold-out state; otherwise fall back to the manual toggle.
-  const inStock = liveStock !== null ? liveStock > 0 : product?.in_stock;
+  // When the product's name links to a Stockroom item, the real quantity
+  // for the selected size/color decides sold-out state; otherwise fall
+  // back to the manual toggle.
+  const variantStock = inventoryItem ? stockForVariant(inventoryItem, size, color) : null;
+  const inStock = inventoryItem ? variantStock > 0 : product?.in_stock;
 
   if (loading) {
     return <p className="text-center py-24 text-silver-dim text-sm">Loading…</p>;
@@ -102,17 +104,21 @@ export default function ProductDetail() {
           <div className="mb-6">
             <p className="eyebrow text-silver-dim mb-2">Size</p>
             <div className="flex flex-wrap gap-2">
-              {product.sizes.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setSize(s)}
-                  className={`w-11 h-11 border eyebrow text-xs transition-colors ${
-                    size === s ? "bg-noir text-platinum border-noir" : "border-line/40 hover:border-noir"
-                  }`}
-                >
-                  {s}
-                </button>
-              ))}
+              {product.sizes.map((s) => {
+                const sizeOut = inventoryItem && stockForSize(inventoryItem, s) <= 0;
+                return (
+                  <button
+                    key={s}
+                    onClick={() => setSize(s)}
+                    disabled={sizeOut}
+                    className={`w-11 h-11 border eyebrow text-xs transition-colors ${
+                      size === s ? "bg-noir text-platinum border-noir" : "border-line/40 hover:border-noir"
+                    } ${sizeOut ? "opacity-30 line-through hover:border-line/40" : ""}`}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
@@ -136,9 +142,9 @@ export default function ProductDetail() {
           </div>
         )}
 
-        {liveStock !== null && (
+        {inventoryItem && (
           <p className="text-xs text-silver-dim mb-3">
-            {liveStock > 0 ? `${liveStock} in stock` : "Out of stock"}
+            {variantStock > 0 ? `${variantStock} in stock` : "Out of stock in this size/color"}
           </p>
         )}
 
