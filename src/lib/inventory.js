@@ -44,3 +44,20 @@ export function stockForVariant(item, size, color) {
 export function stockForSize(item, size) {
   return stockForVariant(item, size, null);
 }
+
+// The distinct sizes and colors Stockroom has for this item, so the admin
+// form can fill those in automatically instead of typing them by hand.
+export function sizesAndColorsFromItem(item) {
+  if (!item?.variants?.length) return { sizes: [], colors: [] };
+
+  const sizes = [...new Set(item.variants.map((v) => v.size).filter(Boolean))];
+  const colors = [...new Set(item.variants.map((v) => v.color).filter(Boolean))];
+
+  sizes.sort((a, b) => {
+    const na = Number(a);
+    const nb = Number(b);
+    return !isNaN(na) && !isNaN(nb) ? na - nb : String(a).localeCompare(String(b));
+  });
+
+  return { sizes, colors };
+}

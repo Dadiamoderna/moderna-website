@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X, Upload, Trash2 } from "lucide-react";
 import { createProduct, updateProduct, uploadProductImage } from "../../lib/products";
+import { fetchInventoryItem, sizesAndColorsFromItem } from "../../lib/inventory";
 import { CATEGORIES } from "../../config";
 
 const emptyProduct = {
@@ -29,9 +30,24 @@ export default function ProductForm({ product, onClose, onSaved }) {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [lookupStatus, setLookupStatus] = useState("");
 
   function update(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
+  }
+
+  async function handleNameBlur() {
+    const name = form.name?.trim();
+    if (!name) return;
+    setLookupStatus("Checking Stockroom…");
+    const item = await fetchInventoryItem(name);
+    if (!item) {
+      setLookupStatus("No matching Stockroom item found — enter sizes/colors manually.");
+      return;
+    }
+    const { sizes, colors } = sizesAndColorsFromItem(item);
+    setForm((f) => ({ ...f, sizes: sizes.join(", "), colors: colors.join(", ") }));
+    setLookupStatus(`Found in Stockroom — filled in ${sizes.length} size(s), ${colors.length} color(s).`);
   }
 
   async function handleFiles(e) {
@@ -100,13 +116,17 @@ export default function ProductForm({ product, onClose, onSaved }) {
 
         <form onSubmit={handleSubmit} className="grid gap-5">
           <div>
-            <label className="block eyebrow text-silver-dim mb-2">Name</label>
+            <label className="block eyebrow text-silver-dim mb-2">
+              Name <span className="normal-case text-silver-dim/70">(match Stockroom's code to auto-fill sizes/colors)</span>
+            </label>
             <input
               required
               value={form.name}
               onChange={(e) => update("name", e.target.value)}
+              onBlur={handleNameBlur}
               className="w-full border border-line/40 px-4 py-3 bg-transparent focus:border-noir outline-none"
             />
+            {lookupStatus && <p className="text-xs text-silver-dim mt-2">{lookupStatus}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-5">
