@@ -12,6 +12,7 @@ const emptyProduct = {
   sizes: "",
   colors: "",
   images: [],
+  discount_percent: 0,
   in_stock: true,
   featured: false,
 };
@@ -87,6 +88,7 @@ export default function ProductForm({ product, onClose, onSaved }) {
         .map((c) => c.trim())
         .filter(Boolean),
       images: form.images,
+      discount_percent: Math.max(0, Math.min(100, Number(form.discount_percent) || 0)),
       in_stock: form.in_stock,
       featured: form.featured,
     };
@@ -129,7 +131,7 @@ export default function ProductForm({ product, onClose, onSaved }) {
             {lookupStatus && <p className="text-xs text-silver-dim mt-2">{lookupStatus}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-5">
+          <div className="grid grid-cols-3 gap-5">
             <div>
               <label className="block eyebrow text-silver-dim mb-2">Price ({"$"})</label>
               <input
@@ -139,6 +141,19 @@ export default function ProductForm({ product, onClose, onSaved }) {
                 min="0"
                 value={form.price}
                 onChange={(e) => update("price", e.target.value)}
+                className="w-full border border-line/40 px-4 py-3 bg-transparent focus:border-noir outline-none"
+              />
+            </div>
+            <div>
+              <label className="block eyebrow text-silver-dim mb-2">Discount (%)</label>
+              <input
+                type="number"
+                step="1"
+                min="0"
+                max="100"
+                placeholder="0"
+                value={form.discount_percent || ""}
+                onChange={(e) => update("discount_percent", e.target.value)}
                 className="w-full border border-line/40 px-4 py-3 bg-transparent focus:border-noir outline-none"
               />
             </div>
@@ -157,6 +172,11 @@ export default function ProductForm({ product, onClose, onSaved }) {
               </select>
             </div>
           </div>
+          {Number(form.discount_percent) > 0 && Number(form.price) > 0 && (
+            <p className="text-xs text-silver-dim -mt-3">
+              Sale price: ${(Number(form.price) * (1 - Number(form.discount_percent) / 100)).toFixed(2)}
+            </p>
+          )}
 
           <div>
             <label className="block eyebrow text-silver-dim mb-2">Description</label>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { fetchProduct } from "../lib/products";
 import { fetchInventoryItem, stockForVariant, stockForSize } from "../lib/inventory";
+import { discountedPrice, hasDiscount } from "../lib/pricing";
 import { useCart } from "../context/CartContext";
 import { STORE } from "../config";
 
@@ -51,7 +52,7 @@ export default function ProductDetail() {
   }
 
   function handleAdd() {
-    addItem(product, { size, color, quantity: 1 });
+    addItem({ ...product, price: discountedPrice(product) }, { size, color, quantity: 1 });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   }
@@ -92,9 +93,22 @@ export default function ProductDetail() {
       <div className="max-w-md">
         <p className="eyebrow text-silver-dim mb-2">{product.category}</p>
         <h1 className="font-display text-3xl md:text-4xl mb-3">{product.name}</h1>
-        <p className="font-display text-xl text-brass mb-6">
-          {STORE.currency}
-          {Number(product.price).toFixed(2)}
+        <p className="font-display text-xl text-brass mb-6 flex items-center gap-3">
+          {hasDiscount(product) && (
+            <span className="text-base text-silver-dim line-through">
+              {STORE.currency}
+              {Number(product.price).toFixed(2)}
+            </span>
+          )}
+          <span>
+            {STORE.currency}
+            {discountedPrice(product).toFixed(2)}
+          </span>
+          {hasDiscount(product) && (
+            <span className="eyebrow bg-brass text-noir px-2 py-1 text-[10px]">
+              -{product.discount_percent}%
+            </span>
+          )}
         </p>
         {product.description && (
           <p className="text-sm text-noir/80 leading-relaxed mb-8">{product.description}</p>
