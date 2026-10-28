@@ -6,10 +6,8 @@
 --   * stock can never go below zero, so the site can't oversell
 --   * rows are locked while updating, so two customers ordering the last
 --     pair at the same moment can't both get it
--- Replaces the earlier decrement_stock function.
+-- Installing it changes no data; it only adds this one function.
 -- ─────────────────────────────────────────────────────────────
-
-drop function if exists decrement_stock(text, text, text, text, integer);
 
 create or replace function take_stock(p_items jsonb)
 returns boolean
