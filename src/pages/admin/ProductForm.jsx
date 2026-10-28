@@ -15,6 +15,9 @@ const emptyProduct = {
   discount_percent: 0,
   in_stock: true,
   featured: false,
+  new_collection: false,
+  last_pairs: false,
+  twenty_dollar: false,
 };
 
 export default function ProductForm({ product, onClose, onSaved }) {
@@ -91,6 +94,9 @@ export default function ProductForm({ product, onClose, onSaved }) {
       discount_percent: Math.max(0, Math.min(100, Number(form.discount_percent) || 0)),
       in_stock: form.in_stock,
       featured: form.featured,
+      new_collection: form.new_collection,
+      last_pairs: form.last_pairs,
+      twenty_dollar: form.twenty_dollar,
     };
     try {
       if (isEditing) {
@@ -232,7 +238,7 @@ export default function ProductForm({ product, onClose, onSaved }) {
             </div>
           </div>
 
-          <div className="flex gap-6">
+          <div className="flex flex-wrap gap-x-6 gap-y-3">
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
@@ -248,6 +254,30 @@ export default function ProductForm({ product, onClose, onSaved }) {
                 onChange={(e) => update("featured", e.target.checked)}
               />
               Feature on homepage
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={form.new_collection}
+                onChange={(e) => update("new_collection", e.target.checked)}
+              />
+              New Collection
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={form.twenty_dollar}
+                onChange={(e) => update("twenty_dollar", e.target.checked)}
+              />
+              $20 Shoes
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={form.last_pairs}
+                onChange={(e) => update("last_pairs", e.target.checked)}
+              />
+              Last Pairs
             </label>
           </div>
 

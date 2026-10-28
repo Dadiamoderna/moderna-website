@@ -1,8 +1,12 @@
 import { supabase } from "./supabaseClient";
 
-export async function fetchProducts({ category } = {}) {
+export async function fetchProducts({ category, collection } = {}) {
   let query = supabase.from("products").select("*").order("created_at", { ascending: false });
   if (category) query = query.eq("category", category);
+  if (collection === "new") query = query.eq("new_collection", true);
+  if (collection === "sale") query = query.gt("discount_percent", 0);
+  if (collection === "20") query = query.eq("twenty_dollar", true);
+  if (collection === "last") query = query.eq("last_pairs", true);
   const { data, error } = await query;
   if (error) throw error;
   return data;

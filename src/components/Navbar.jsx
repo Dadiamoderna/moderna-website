@@ -2,7 +2,13 @@ import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { ShoppingBag, Menu, X } from "lucide-react";
 import { useCart } from "../context/CartContext";
-import { STORE, CATEGORIES } from "../config";
+import { STORE } from "../config";
+
+const SECTIONS = [
+  { label: "New Collection", to: "/shop?collection=new" },
+  { label: "Shop All", to: "/shop" },
+  { label: "Sale", to: "/shop?collection=sale" },
+];
 
 export default function Navbar() {
   const { count, setIsOpen } = useCart();
@@ -27,13 +33,9 @@ export default function Navbar() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-8 eyebrow text-noir/70">
-          {CATEGORIES.map((c) => (
-            <NavLink
-              key={c}
-              to={`/shop?category=${encodeURIComponent(c)}`}
-              className="hover:text-brass transition-colors"
-            >
-              {c}
+          {SECTIONS.map((s) => (
+            <NavLink key={s.label} to={s.to} className="hover:text-brass transition-colors">
+              {s.label}
             </NavLink>
           ))}
         </nav>
@@ -54,14 +56,9 @@ export default function Navbar() {
 
       {menuOpen && (
         <nav className="md:hidden border-t border-line/20 px-5 py-4 flex flex-col gap-4 eyebrow text-noir/70">
-          {CATEGORIES.map((c) => (
-            <Link
-              key={c}
-              to={`/shop?category=${encodeURIComponent(c)}`}
-              onClick={() => setMenuOpen(false)}
-              className="hover:text-brass"
-            >
-              {c}
+          {SECTIONS.map((s) => (
+            <Link key={s.label} to={s.to} onClick={() => setMenuOpen(false)} className="hover:text-brass">
+              {s.label}
             </Link>
           ))}
         </nav>
