@@ -137,7 +137,7 @@ export default function ProductForm({ product, onClose, onSaved }) {
             {lookupStatus && <p className="text-xs text-silver-dim mt-2">{lookupStatus}</p>}
           </div>
 
-          <div className="grid grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <div>
               <label className="block eyebrow text-silver-dim mb-2">Price ({"$"})</label>
               <input
@@ -194,7 +194,7 @@ export default function ProductForm({ product, onClose, onSaved }) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="block eyebrow text-silver-dim mb-2">Sizes (comma-separated)</label>
               <input

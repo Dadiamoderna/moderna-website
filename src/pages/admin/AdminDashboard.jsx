@@ -50,6 +50,18 @@ export default function AdminDashboard() {
   useEffect(() => {
     loadProducts();
     loadOrders();
+
+    // Keep orders fresh without reloading: every minute, and whenever the app
+    // comes back to the front on a phone.
+    const refresh = () => {
+      if (!document.hidden) loadOrders();
+    };
+    const timer = setInterval(refresh, 60000);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", refresh);
+    };
   }, []);
 
   async function handleDelete(product) {
@@ -79,6 +91,11 @@ export default function AdminDashboard() {
   }
 
   const newOrders = orders.filter((o) => o.status === "new").length;
+
+  useEffect(() => {
+    document.title = newOrders > 0 ? `(${newOrders}) Moderna Admin` : "Moderna Admin";
+  }, [newOrders]);
+
   const needle = query.trim().toLowerCase();
   const visibleProducts = needle
     ? products.filter((p) => p.name.toLowerCase().includes(needle))
@@ -86,14 +103,14 @@ export default function AdminDashboard() {
 
   return (
     <div className="mx-auto max-w-7xl px-5 md:px-8 py-10">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="font-display text-3xl">{STORE.name} Admin</h1>
           <p className="text-sm text-silver-dim mt-1">
             {products.length} products · {newOrders} new {newOrders === 1 ? "order" : "orders"}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Link
             to="/"
             className="eyebrow text-silver-dim hover:text-noir px-2 transition-colors"
@@ -165,7 +182,7 @@ export default function AdminDashboard() {
                 <tr className="text-left eyebrow text-silver-dim border-b border-line/30">
                   <th className="py-3 pr-4">Photo</th>
                   <th className="py-3 pr-4">Name</th>
-                  <th className="py-3 pr-4">Category</th>
+                  <th className="py-3 pr-4 hidden sm:table-cell">Category</th>
                   <th className="py-3 pr-4">Price</th>
                   <th className="py-3 pr-4">Stock</th>
                   <th className="py-3 pr-4"></th>
@@ -197,7 +214,7 @@ export default function AdminDashboard() {
                           </div>
                         )}
                       </td>
-                      <td className="py-3 pr-4 text-silver-dim">{p.category}</td>
+                      <td className="py-3 pr-4 text-silver-dim hidden sm:table-cell">{p.category}</td>
                       <td className="py-3 pr-4">
                         {STORE.currency}
                         {Number(p.price).toFixed(2)}
