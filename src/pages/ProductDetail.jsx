@@ -1,19 +1,21 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { Minus, Plus } from "lucide-react";
 import { fetchProduct } from "../lib/products";
 import { fetchInventoryItem, stockForVariant, stockForSize } from "../lib/inventory";
 import { discountedPrice, hasDiscount } from "../lib/pricing";
 import { useCart } from "../context/CartContext";
-import { STORE } from "../config";
+import { STORE, MAX_QTY_PER_ITEM } from "../config";
 
 export default function ProductDetail() {
   const { id } = useParams();
-  const { addItem } = useCart();
+  const { addItem, items } = useCart();
   const [product, setProduct] = useState(null);
   const [inventoryItem, setInventoryItem] = useState(null);
   const [activeImage, setActiveImage] = useState(0);
   const [size, setSize] = useState("");
   const [color, setColor] = useState("");
+  const [qty, setQty] = useState(1);
   const [loading, setLoading] = useState(true);
   const [added, setAdded] = useState(false);
 
@@ -36,6 +38,21 @@ export default function ProductDetail() {
   const variantStock = inventoryItem ? stockForVariant(inventoryItem, size, color) : null;
   const inStock = inventoryItem ? variantStock > 0 : product?.in_stock;
 
+  // How many more of this size/color can be added: its stock (when linked to
+  // Stockroom), at most MAX_QTY_PER_ITEM, minus what's already in the bag.
+  const lineKey = `${product?.id}__${size ?? ""}__${color ?? ""}`;
+  const inBag = items.find((i) => i.key === lineKey)?.quantity ?? 0;
+  const cap = Math.min(MAX_QTY_PER_ITEM, variantStock ?? MAX_QTY_PER_ITEM);
+  const remaining = Math.max(0, cap - inBag);
+
+  useEffect(() => {
+    setQty(1);
+  }, [size, color]);
+
+  useEffect(() => {
+    setQty((q) => Math.min(Math.max(1, q), Math.max(1, remaining)));
+  }, [remaining]);
+
   if (loading) {
     return <p className="text-center py-24 text-silver-dim text-sm">Loading…</p>;
   }
@@ -52,7 +69,11 @@ export default function ProductDetail() {
   }
 
   function handleAdd() {
-    addItem({ ...product, price: discountedPrice(product) }, { size, color, quantity: 1 });
+    addItem(
+      { ...product, price: discountedPrice(product) },
+      { size, color, quantity: Math.min(qty, remaining), max: cap }
+    );
+    setQty(1);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   }
@@ -160,12 +181,54 @@ export default function ProductDetail() {
           <p className="text-xs text-silver-dim mb-3">Out of stock in this size/color</p>
         )}
 
+        {inStock && remaining > 0 && (
+          <div className="mb-5">
+            <p className="eyebrow text-silver-dim mb-2">Quantity</p>
+            <div className="inline-flex items-center border border-line/40">
+              <button
+                type="button"
+                onClick={() => setQty((q) => Math.max(1, q - 1))}
+                disabled={qty <= 1}
+                aria-label="Decrease quantity"
+                className="w-11 h-11 flex items-center justify-center disabled:opacity-30"
+              >
+                <Minus size={14} />
+              </button>
+              <span className="w-10 text-center text-sm">{qty}</span>
+              <button
+                type="button"
+                onClick={() => setQty((q) => Math.min(remaining, q + 1))}
+                disabled={qty >= remaining}
+                aria-label="Increase quantity"
+                className="w-11 h-11 flex items-center justify-center disabled:opacity-30"
+              >
+                <Plus size={14} />
+              </button>
+            </div>
+            {qty >= remaining && (inBag > 0 || remaining > 1) && (
+              <p className="text-xs text-silver-dim mt-2">
+                {cap < MAX_QTY_PER_ITEM || variantStock === MAX_QTY_PER_ITEM
+                  ? inBag > 0
+                    ? "That's all we have in this size. Some are already in your bag."
+                    : "That's all we have in this size."
+                  : `Maximum ${MAX_QTY_PER_ITEM} per order.`}
+              </p>
+            )}
+          </div>
+        )}
+
         <button
           onClick={handleAdd}
-          disabled={!inStock}
+          disabled={!inStock || remaining <= 0}
           className="w-full bg-noir text-platinum py-4 eyebrow hover:bg-brass hover:text-noir transition-colors disabled:opacity-40 disabled:hover:bg-noir disabled:hover:text-platinum"
         >
-          {!inStock ? "Sold out" : added ? "Added ✓" : "Add to bag"}
+          {!inStock
+            ? "Sold out"
+            : remaining <= 0
+              ? "All available are in your bag"
+              : added
+                ? "Added ✓"
+                : "Add to bag"}
         </button>
       </div>
     </div>

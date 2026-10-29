@@ -20,6 +20,10 @@ export const STORE = {
     "Moderna designs and hand-finishes premium leather shoes for women, crafted in Lebanon with an eye for quiet, lasting style.",
 };
 
+// Most pairs of one size/color a single order can hold. Matches the limit in
+// Stockroom's take_stock function, which refuses more than 10 per line.
+export const MAX_QTY_PER_ITEM = 10;
+
 export const CATEGORIES = [
   "Heels",
   "Flats",

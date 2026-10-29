@@ -1,16 +1,65 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X, Minus, Plus, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-import { STORE } from "../config";
+import { fetchInventoryItem, stockForVariant } from "../lib/inventory";
+import { STORE, MAX_QTY_PER_ITEM } from "../config";
 import Checkout from "./Checkout";
+
+// Live stock for every line in the bag, by line key. A line that isn't in
+// Stockroom has no entry (null), so it's only held to MAX_QTY_PER_ITEM.
+function useLineStock(items, enabled) {
+  const [stock, setStock] = useState({});
+  // Only the lines themselves matter here, not their quantities, so changing
+  // a quantity doesn't trigger a refetch.
+  const signature = JSON.stringify(items.map((i) => [i.key, i.name, i.size, i.color]));
+
+  useEffect(() => {
+    const lines = JSON.parse(signature);
+    if (!enabled || lines.length === 0) return;
+    let cancelled = false;
+    const names = [...new Set(lines.map(([, name]) => name))];
+    Promise.all(names.map(async (name) => [name, await fetchInventoryItem(name)])).then(
+      (entries) => {
+        if (cancelled) return;
+        const byName = Object.fromEntries(entries);
+        const next = {};
+        for (const [key, name, size, color] of lines) {
+          const inv = byName[name];
+          next[key] = inv ? stockForVariant(inv, size, color) : null;
+        }
+        setStock(next);
+      }
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [enabled, signature]);
+
+  return stock;
+}
 
 export default function CartDrawer() {
   const { items, isOpen, setIsOpen, updateQuantity, removeItem, subtotal, clearCart } = useCart();
   const [showCheckout, setShowCheckout] = useState(false);
   const [placed, setPlaced] = useState(false);
+  const lineStock = useLineStock(items, isOpen);
+
+  const lineMax = (item) => Math.min(MAX_QTY_PER_ITEM, lineStock[item.key] ?? MAX_QTY_PER_ITEM);
+
+  // If a line holds more than can be bought (older bag, or stock dropped),
+  // bring it down to what's available.
+  useEffect(() => {
+    if (!isOpen) return;
+    for (const item of items) {
+      const max = Math.min(MAX_QTY_PER_ITEM, lineStock[item.key] ?? MAX_QTY_PER_ITEM);
+      if (max >= 1 && item.quantity > max) updateQuantity(item.key, max);
+    }
+  }, [isOpen, items, lineStock, updateQuantity]);
 
   if (!isOpen) return null;
+
+  const unavailable = items.some((i) => lineStock[i.key] === 0);
 
   function handlePlaced() {
     setShowCheckout(false);
@@ -95,7 +144,9 @@ export default function CartDrawer() {
                             <span className="text-sm w-4 text-center">{item.quantity}</span>
                             <button
                               onClick={() => updateQuantity(item.key, item.quantity + 1)}
+                              disabled={item.quantity >= lineMax(item)}
                               aria-label="Increase quantity"
+                              className="disabled:opacity-30"
                             >
                               <Plus size={13} />
                             </button>
@@ -105,6 +156,19 @@ export default function CartDrawer() {
                             {(item.price * item.quantity).toFixed(2)}
                           </span>
                         </div>
+                        {lineStock[item.key] === 0 ? (
+                          <p className="text-[11px] text-red-700 mt-1.5">
+                            No longer available. Please remove it.
+                          </p>
+                        ) : (
+                          item.quantity >= lineMax(item) && (
+                            <p className="text-[11px] text-silver-dim mt-1.5">
+                              {lineStock[item.key] != null && lineStock[item.key] <= MAX_QTY_PER_ITEM
+                                ? "That's all we have in this size."
+                                : `Maximum ${MAX_QTY_PER_ITEM} per order.`}
+                            </p>
+                          )
+                        )}
                       </div>
                     </li>
                   ))}
@@ -123,7 +187,8 @@ export default function CartDrawer() {
                 </div>
                 <button
                   onClick={() => setShowCheckout(true)}
-                  className="block w-full text-center bg-noir text-platinum py-3 eyebrow hover:bg-brass hover:text-noir transition-colors"
+                  disabled={unavailable}
+                  className="block w-full text-center bg-noir text-platinum py-3 eyebrow hover:bg-brass hover:text-noir transition-colors disabled:opacity-40 disabled:hover:bg-noir disabled:hover:text-platinum"
                 >
                   Checkout
                 </button>

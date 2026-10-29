@@ -20,13 +20,14 @@ export function CartProvider({ children }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }, [items]);
 
-  function addItem(product, { size, color, quantity = 1 } = {}) {
+  // `max` is the most of this size/color that may be in the bag (its stock).
+  function addItem(product, { size, color, quantity = 1, max = Infinity } = {}) {
     setItems((prev) => {
       const key = `${product.id}__${size ?? ""}__${color ?? ""}`;
       const existing = prev.find((i) => i.key === key);
       if (existing) {
         return prev.map((i) =>
-          i.key === key ? { ...i, quantity: i.quantity + quantity } : i
+          i.key === key ? { ...i, quantity: Math.min(i.quantity + quantity, max) } : i
         );
       }
       return [
@@ -39,7 +40,7 @@ export function CartProvider({ children }) {
           image: product.images?.[0] ?? "",
           size,
           color,
-          quantity,
+          quantity: Math.min(quantity, max),
         },
       ];
     });
