@@ -25,7 +25,7 @@ export default function Checkout({ items, subtotal, onClose, onPlaced }) {
 
     try {
       if (!stockTaken.current) {
-        const result = await takeStock(items);
+        const result = await takeStock(items, reference.current);
         if (!result.ok) {
           setError(
             result.reason === "insufficient"

@@ -1,7 +1,18 @@
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
-import { updateOrderStatus, deleteOrder } from "../../lib/orders";
+import { updateOrderStatus, deleteOrder, cancelOrder } from "../../lib/orders";
 import { STORE } from "../../config";
+
+function describeCancel(order, result) {
+  if (result.ok) {
+    const who = order.customer_name || "the customer";
+    return result.restored > 0
+      ? `Cancelled the order from ${who}. ${result.restored} ${result.restored === 1 ? "pair was" : "pairs were"} put back in Stockroom.`
+      : `Cancelled the order from ${who}. Nothing was put back in Stockroom (none of its shoes were taken from there).`;
+  }
+  if (result.reason === "changed") return "That order was already changed, so nothing was done. Refresh and check.";
+  return `Couldn't put the shoes back in Stockroom, so the order was NOT cancelled. Please try again. (${result.detail || "no details"})`;
+}
 
 const TABS = [
   { value: "new", label: "New" },
@@ -27,6 +38,7 @@ const BADGE = {
 export default function OrdersList({ orders, onChange }) {
   const [filter, setFilter] = useState("new");
   const [busyId, setBusyId] = useState(null);
+  const [notice, setNotice] = useState(null); // { text, bad }
 
   const counts = { all: orders.length };
   for (const o of orders) counts[o.status] = (counts[o.status] || 0) + 1;
@@ -43,19 +55,40 @@ export default function OrdersList({ orders, onChange }) {
     }
   }
 
+  const isActive = (order) => order.status === "new" || order.status === "confirmed";
+
+  async function runCancel(order) {
+    setBusyId(order.id);
+    try {
+      const result = await cancelOrder(order);
+      setNotice({ text: describeCancel(order, result), bad: !result.ok });
+      onChange();
+      return result.ok;
+    } catch (err) {
+      setNotice({ text: `Something went wrong: ${err.message}`, bad: true });
+      return false;
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   async function handleCancel(order) {
     if (
       !confirm(
-        `Cancel the order from ${order.customer_name || "this customer"}?\n\nThe shoes are NOT added back to Stockroom automatically — add them back there if they're returning to the shelf.`
+        `Cancel the order from ${order.customer_name || "this customer"}?\n\nIts shoes will be put back in Stockroom.`
       )
     )
       return;
-    await setStatus(order, "cancelled");
+    await runCancel(order);
   }
 
   async function handleDelete(order) {
-    if (!confirm(`Delete this order from ${order.customer_name || "customer"}? This can't be undone.`))
-      return;
+    const active = isActive(order);
+    const message = active
+      ? `This order is still active. Deleting it will cancel it and put its shoes back in Stockroom first.\n\nDelete the order from ${order.customer_name || "this customer"}?`
+      : `Delete this order from ${order.customer_name || "customer"}? This can't be undone.`;
+    if (!confirm(message)) return;
+    if (active && !(await runCancel(order))) return; // stock couldn't be restored: keep the order
     await deleteOrder(order.id);
     onChange();
   }
@@ -77,6 +110,19 @@ export default function OrdersList({ orders, onChange }) {
           </button>
         ))}
       </div>
+
+      {notice && (
+        <div
+          className={`mb-6 border px-4 py-3 text-sm flex items-start justify-between gap-4 ${
+            notice.bad ? "border-red-700 text-red-700" : "border-line/40"
+          }`}
+        >
+          <span>{notice.text}</span>
+          <button onClick={() => setNotice(null)} className="eyebrow shrink-0">
+            OK
+          </button>
+        </div>
+      )}
 
       {visible.length === 0 ? (
         <p className="text-silver-dim text-sm">

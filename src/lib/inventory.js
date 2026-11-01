@@ -48,14 +48,17 @@ export function stockForSize(item, size) {
 // Takes stock in Stockroom for every item in an order, all or nothing: if any
 // size/color is short, nothing is taken and { ok: false, reason: "insufficient" }
 // comes back with a readable `detail` (e.g. "1626 (size 36)").
-export async function takeStock(items) {
+export async function takeStock(items, reference) {
   if (!hasInventoryLink) return { ok: true };
 
+  // The reference lets Stockroom remember exactly what this order took, so a
+  // cancelled order can put the same pairs back.
   const payload = items.map((i) => ({
     name: i.name,
     size: i.size ?? "",
     color: i.color ?? "",
     quantity: i.quantity,
+    reference,
   }));
 
   const { error } = await inventorySupabase.rpc("take_stock", { p_items: payload });
@@ -69,6 +72,16 @@ export async function takeStock(items) {
     };
   }
   return { ok: false, reason: "error", detail: error.message };
+}
+
+// Puts back exactly what an order took, once (a second call restores nothing).
+// Returns { ok: true, restored } or { ok: false, detail }.
+export async function restockOrder(reference) {
+  if (!hasInventoryLink || !reference) return { ok: true, restored: 0 };
+
+  const { data, error } = await inventorySupabase.rpc("restock_order", { p_reference: reference });
+  if (error) return { ok: false, detail: error.message };
+  return { ok: true, restored: Number(data) || 0 };
 }
 
 // One request for the admin product list: product name -> total quantity in
