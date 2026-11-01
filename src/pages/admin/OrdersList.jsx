@@ -96,6 +96,9 @@ export default function OrdersList({ orders, onChange }) {
                       <span className={`eyebrow text-[10px] px-2 py-1 ${BADGE[order.status] || ""}`}>
                         {order.status}
                       </span>
+                      {order.reference && (
+                        <span className="text-xs text-silver-dim tracking-wide">{order.reference}</span>
+                      )}
                     </div>
                     <p className="text-sm mt-1">
                       <a href={`tel:${order.phone}`} className="underline">

@@ -2,7 +2,15 @@ import { supabase } from "./supabaseClient";
 
 // No .select() on purpose: customers may insert orders but aren't allowed to
 // read them back, and asking for the saved row makes Supabase reject the insert.
-export async function createOrder({ items, subtotal, fulfillment, customerName, phone, address }) {
+export async function createOrder({
+  items,
+  subtotal,
+  fulfillment,
+  customerName,
+  phone,
+  address,
+  reference,
+}) {
   const { error } = await supabase.from("orders").insert({
     items,
     subtotal,
@@ -10,6 +18,7 @@ export async function createOrder({ items, subtotal, fulfillment, customerName, 
     customer_name: customerName,
     phone,
     address,
+    reference,
   });
   if (error) throw error;
 }

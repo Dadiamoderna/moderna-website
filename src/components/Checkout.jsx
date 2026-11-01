@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { X } from "lucide-react";
 import { createOrder } from "../lib/orders";
 import { takeStock } from "../lib/inventory";
+import { makeReference } from "../lib/orderConfirmation";
 import { STORE } from "../config";
 
 export default function Checkout({ items, subtotal, onClose, onPlaced }) {
@@ -14,6 +15,8 @@ export default function Checkout({ items, subtotal, onClose, onPlaced }) {
   // If saving the order fails after stock was already taken, a retry must not
   // take the stock a second time.
   const stockTaken = useRef(false);
+  // One reference per checkout, so a retry reuses the same code.
+  const reference = useRef(makeReference());
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -47,9 +50,22 @@ export default function Checkout({ items, subtotal, onClose, onPlaced }) {
         customerName: name,
         phone,
         address: fulfillment === "delivery" ? address : "",
+        reference: reference.current,
       });
 
-      onPlaced();
+      onPlaced({
+        reference: reference.current,
+        name,
+        fulfillment,
+        subtotal,
+        items: items.map((i) => ({
+          name: i.name,
+          size: i.size,
+          color: i.color,
+          quantity: i.quantity,
+          price: i.price,
+        })),
+      });
     } catch (err) {
       setError(err.message || "Something went wrong placing this order.");
     } finally {

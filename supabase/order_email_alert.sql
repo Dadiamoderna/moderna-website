@@ -10,6 +10,9 @@
 
 create extension if not exists pg_net with schema extensions;
 
+-- Short code the customer sees (e.g. MOD-7K3PQ2) so you and they can refer to an order.
+alter table orders add column if not exists reference text;
+
 -- Private settings. RLS on with no policies + no grants = the website and the
 -- public key can never read it; only the database itself can.
 create table if not exists private_config (
@@ -36,6 +39,7 @@ declare
   v_items text;
   v_how text;
   v_total text;
+  v_ref text;
 begin
   select value into v_key from private_config where name = 'resend_api_key';
   select value into v_to from private_config where name = 'notify_to';
@@ -59,6 +63,7 @@ begin
 
   v_how := case when new.fulfillment = 'delivery' then 'Delivery' else 'Pickup' end;
   v_total := to_char(new.subtotal, 'FM999990.00');
+  v_ref := coalesce(nullif(new.reference, ''), '');
 
   perform net.http_post(
     url := 'https://api.resend.com/emails',
@@ -69,9 +74,10 @@ begin
     body := jsonb_build_object(
       'from', 'Moderna Orders <onboarding@resend.dev>',
       'to', jsonb_build_array(v_to),
-      'subject', 'New Moderna order - $' || v_total || ' (' || v_how || ')',
+      'subject', 'New Moderna order' || case when v_ref <> '' then ' ' || v_ref else '' end || ' - $' || v_total || ' (' || v_how || ')',
       'text',
         'New order from ' || coalesce(new.customer_name, '') || E'\n'
+        || case when v_ref <> '' then 'Reference: ' || v_ref || E'\n' else '' end
         || 'Phone: ' || coalesce(new.phone, '') || E'\n'
         || case when new.fulfillment = 'delivery'
                 then 'Delivery to: ' || coalesce(new.address, '')

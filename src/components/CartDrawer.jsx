@@ -3,6 +3,7 @@ import { X, Minus, Plus, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { fetchInventoryItem, stockForVariant } from "../lib/inventory";
+import { lineText, whatsappConfirmLink } from "../lib/orderConfirmation";
 import { STORE, MAX_QTY_PER_ITEM } from "../config";
 import Checkout from "./Checkout";
 
@@ -42,7 +43,7 @@ function useLineStock(items, enabled) {
 export default function CartDrawer() {
   const { items, isOpen, setIsOpen, updateQuantity, removeItem, subtotal, clearCart } = useCart();
   const [showCheckout, setShowCheckout] = useState(false);
-  const [placed, setPlaced] = useState(false);
+  const [placed, setPlaced] = useState(null); // the order just placed, for the confirmation screen
   const lineStock = useLineStock(items, isOpen);
 
   const lineMax = (item) => Math.min(MAX_QTY_PER_ITEM, lineStock[item.key] ?? MAX_QTY_PER_ITEM);
@@ -61,14 +62,14 @@ export default function CartDrawer() {
 
   const unavailable = items.some((i) => lineStock[i.key] === 0);
 
-  function handlePlaced() {
+  function handlePlaced(order) {
     setShowCheckout(false);
-    setPlaced(true);
+    setPlaced(order);
     clearCart();
   }
 
   function handleCloseAfterPlaced() {
-    setPlaced(false);
+    setPlaced(null);
     setIsOpen(false);
   }
 
@@ -88,14 +89,57 @@ export default function CartDrawer() {
         </div>
 
         {placed ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
-            <h3 className="font-display text-2xl mb-2">Order placed!</h3>
+          <div className="flex-1 overflow-y-auto px-6 py-8">
+            <h3 className="font-display text-2xl mb-1">Order placed!</h3>
             <p className="text-sm text-silver-dim mb-6">
-              We'll call you shortly to confirm your order.
+              Thank you{placed.name ? `, ${placed.name.split(" ")[0]}` : ""}. We'll call you shortly
+              to confirm.
             </p>
+
+            <div className="border border-line/30 p-4 mb-6">
+              <p className="eyebrow text-silver-dim mb-1">Your order number</p>
+              <p className="font-display text-2xl tracking-wide">{placed.reference}</p>
+              <p className="text-xs text-silver-dim mt-1">Quote this if you contact us.</p>
+            </div>
+
+            <ul className="text-sm mb-4 flex flex-col gap-1.5">
+              {placed.items.map((item, i) => (
+                <li key={i} className="flex justify-between gap-3">
+                  <span>{lineText(item)}</span>
+                  <span className="shrink-0">
+                    {STORE.currency}
+                    {(item.price * item.quantity).toFixed(2)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="border-t border-line/20 pt-3 mb-6 text-sm">
+              <div className="flex justify-between font-display text-lg">
+                <span>Total</span>
+                <span>
+                  {STORE.currency}
+                  {placed.subtotal.toFixed(2)}
+                </span>
+              </div>
+              <p className="text-silver-dim mt-1">
+                {placed.fulfillment === "delivery"
+                  ? "Delivery — pay in cash on delivery. We'll confirm the delivery fee by phone."
+                  : "Pickup from KOURA — pay in cash on pickup."}
+              </p>
+            </div>
+
+            <a
+              href={whatsappConfirmLink(placed)}
+              target="_blank"
+              rel="noreferrer"
+              className="block w-full text-center border border-noir py-3 eyebrow hover:bg-noir hover:text-platinum transition-colors mb-3"
+            >
+              Send this to us on WhatsApp
+            </a>
             <button
               onClick={handleCloseAfterPlaced}
-              className="bg-noir text-platinum px-6 py-3 eyebrow hover:bg-brass hover:text-noir transition-colors"
+              className="block w-full text-center bg-noir text-platinum py-3 eyebrow hover:bg-brass hover:text-noir transition-colors"
             >
               Close
             </button>
