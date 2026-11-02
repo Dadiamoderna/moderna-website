@@ -74,16 +74,6 @@ export async function takeStock(items, reference) {
   return { ok: false, reason: "error", detail: error.message };
 }
 
-// Puts back exactly what an order took, once (a second call restores nothing).
-// Returns { ok: true, restored } or { ok: false, detail }.
-export async function restockOrder(reference) {
-  if (!hasInventoryLink || !reference) return { ok: true, restored: 0 };
-
-  const { data, error } = await inventorySupabase.rpc("restock_order", { p_reference: reference });
-  if (error) return { ok: false, detail: error.message };
-  return { ok: true, restored: Number(data) || 0 };
-}
-
 // One request for the admin product list: product name -> total quantity in
 // Stockroom. Names that aren't in Stockroom are simply absent from the result.
 export async function fetchStockTotals(names) {

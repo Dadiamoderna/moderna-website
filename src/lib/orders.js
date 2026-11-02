@@ -1,5 +1,4 @@
 import { supabase } from "./supabaseClient";
-import { restockOrder } from "./inventory";
 
 // No .select() on purpose: customers may insert orders but aren't allowed to
 // read them back, and asking for the saved row makes Supabase reject the insert.
@@ -43,31 +42,29 @@ export async function deleteOrder(id) {
   if (error) throw error;
 }
 
-// Cancels an active order and puts its shoes back in Stockroom.
-//  1. Claim the cancellation first (only a new/confirmed order can be claimed),
-//     so it can only ever happen once, even with a double click.
-//  2. Put the shoes back. If that fails, undo the cancellation so the order and
-//     the stock never disagree, and report the problem.
-// `deps` exists so this can be tested without a real database.
-export async function cancelOrder(order, deps = { db: supabase, restock: restockOrder }) {
-  const { data, error } = await deps.db
-    .from("orders")
-    .update({ status: "cancelled" })
-    .eq("id", order.id)
-    .in("status", ["new", "confirmed"])
-    .select("id")
-    .maybeSingle();
-  if (error) throw error;
-  if (!data) return { ok: false, reason: "changed" };
+// Cancels an active order and puts its shoes back in Stockroom. This is done
+// by our own server (api/cancel-order.js), not the browser: putting stock back
+// needs a secret the browser never has, so customers can't do it, and it only
+// accepts the signed-in admin. If the shoes can't be put back, the server leaves
+// the order un-cancelled so the order and the stock never disagree.
+// Returns { ok: true, restored } or { ok: false, reason, detail }.
+// `deps` exists so this can be tested without a real server.
+export async function cancelOrder(order, deps = {}) {
+  const getToken =
+    deps.getToken ?? (async () => (await supabase.auth.getSession()).data.session?.access_token);
+  const send = deps.fetch ?? fetch;
 
-  const restock = await deps.restock(order.reference);
-  if (!restock.ok) {
-    await deps.db
-      .from("orders")
-      .update({ status: order.status })
-      .eq("id", order.id)
-      .eq("status", "cancelled");
-    return { ok: false, reason: "restock", detail: restock.detail };
-  }
-  return { ok: true, restored: restock.restored };
+  const token = await getToken();
+  if (!token) throw new Error("You're signed out. Please log in again.");
+
+  const response = await send("/api/cancel-order", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ orderId: order.id }),
+  });
+  const body = await response.json().catch(() => null);
+
+  if (response.status === 401) throw new Error("You're signed out. Please log in again.");
+  if (!body) throw new Error("Couldn't reach the server. Please try again.");
+  return body;
 }
